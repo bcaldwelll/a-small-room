@@ -255,10 +255,39 @@ export const EndingView: React.FC<EndingViewProps> = ({
       ending.reflectionPrompt
     );
 
-    navigator.clipboard.writeText(summaryLines.join('\n')).then(() => {
+    const textToCopy = summaryLines.join('\n');
+    const handleSuccess = () => {
       setCopied(true);
       setTimeout(() => setCopied(false), 2500);
-    });
+    };
+
+    if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
+      navigator.clipboard
+        .writeText(textToCopy)
+        .then(handleSuccess)
+        .catch(() => {
+          fallbackCopyText(textToCopy, handleSuccess);
+        });
+    } else {
+      fallbackCopyText(textToCopy, handleSuccess);
+    }
+  };
+
+  const fallbackCopyText = (text: string, onSuccess: () => void) => {
+    try {
+      const textarea = document.createElement('textarea');
+      textarea.value = text;
+      textarea.style.position = 'fixed';
+      textarea.style.opacity = '0';
+      document.body.appendChild(textarea);
+      textarea.focus();
+      textarea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textarea);
+      onSuccess();
+    } catch (err) {
+      console.warn('[EndingView] Clipboard copy fallback failed:', err);
+    }
   };
 
   const allEndingKeys: EndingId[] = [

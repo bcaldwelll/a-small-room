@@ -38,9 +38,9 @@ export const EndingsModal: React.FC<EndingsModalProps> = ({
       role="dialog"
       aria-modal="true"
       aria-labelledby="collection-title"
-      className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/60 p-4 sm:p-6"
+      className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/60 p-3 sm:p-6"
     >
-      <div className="relative my-auto w-full max-w-xl border-2 border-black bg-white p-6 shadow-2xl sm:p-8">
+      <div className="relative my-auto w-full max-w-xl border-2 border-black bg-white p-5 sm:p-8 shadow-2xl max-h-[90vh] overflow-y-auto">
         <div className="mb-4 flex items-center justify-between border-b border-black/20 pb-3">
           <h2
             id="collection-title"

@@ -24,6 +24,7 @@ import { ScenarioView } from './components/ScenarioView';
 import { EndingView } from './components/EndingView';
 import { EndingsModal } from './components/EndingsModal';
 import { ConfirmModal } from './components/ConfirmModal';
+import { RehearsalModal } from './components/RehearsalModal';
 
 export default function App() {
   const [progress, setProgress] = useState<UserProgress>(() => loadUserProgress());
@@ -32,6 +33,12 @@ export default function App() {
   const [currentScenarioId, setCurrentScenarioId] = useState<string>('s0_arrival');
   const [currentEndingId, setCurrentEndingId] = useState<EndingId | null>(null);
   const [history, setHistory] = useState<RehearsalRecord[]>([]);
+
+  // Active voice rehearsal target state
+  const [rehearsalTarget, setRehearsalTarget] = useState<{
+    choice: StoryChoice;
+    evaluation: ChoiceEvaluation;
+  } | null>(null);
 
   // Modal / UI states
   const [showNotesModal, setShowNotesModal] = useState(false);
@@ -110,6 +117,29 @@ export default function App() {
     }
   };
 
+  // Handle advancing from the AI voice rehearsal studio
+  const handleAdvanceFromRehearsal = (record: RehearsalRecord) => {
+    const targetChoice = rehearsalTarget?.choice;
+    setRehearsalTarget(null);
+
+    const newHistory = [...history, record];
+    setHistory(newHistory);
+
+    const endingId = targetChoice?.targetEndingId;
+    const nextScenarioId = targetChoice?.targetScenarioId;
+
+    if (endingId) {
+      setCurrentEndingId(endingId);
+      const updatedProgress = recordUnlockedEnding(endingId);
+      setProgress(updatedProgress);
+      persistState(currentScenarioId, newHistory, endingId);
+    } else if (nextScenarioId) {
+      setCurrentScenarioId(nextScenarioId);
+      persistState(nextScenarioId, newHistory, null);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
+
   // Step back / reconsider previous decision
   const handleReconsider = () => {
     if (history.length === 0) return;
@@ -136,6 +166,7 @@ export default function App() {
     setCurrentScenarioId('s0_arrival');
     setCurrentEndingId(null);
     setHistory([]);
+    setRehearsalTarget(null);
     setShowRestartConfirm(false);
     clearPlaythroughProgress();
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -172,6 +203,9 @@ export default function App() {
             scenario={currentScenario}
             previousRecord={previousRecord}
             canReconsider={history.length > 0}
+            onOpenRehearsal={(choice, evaluation) =>
+              setRehearsalTarget({ choice, evaluation })
+            }
             onConfirmChoice={handleConfirmChoice}
             onReconsider={handleReconsider}
           />
@@ -182,6 +216,18 @@ export default function App() {
       <footer className="border-t border-black/10 py-6 text-center font-mono text-[11px] text-neutral-400">
         A SMALL ROOM — SOCIAL REHEARSAL &copy; 2026 // BUILT FOR AI CLASS SUBMISSION
       </footer>
+
+      {/* Voice Rehearsal Studio Modal */}
+      {rehearsalTarget && (
+        <RehearsalModal
+          scenario={currentScenario}
+          choice={rehearsalTarget.choice}
+          previousRecord={previousRecord}
+          choiceEvaluation={rehearsalTarget.evaluation}
+          onConfirmAdvance={handleAdvanceFromRehearsal}
+          onCancel={() => setRehearsalTarget(null)}
+        />
+      )}
 
       {/* Notes & Ending Collection Modal */}
       {showNotesModal && (

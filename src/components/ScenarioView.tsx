@@ -11,6 +11,7 @@ interface ScenarioViewProps {
   scenario: Scenario;
   previousRecord?: RehearsalRecord;
   canReconsider: boolean;
+  onOpenRehearsal: (choice: StoryChoice, evaluation: ChoiceEvaluation) => void;
   onConfirmChoice: (choice: StoryChoice, evaluation: ChoiceEvaluation) => void;
   onReconsider: () => void;
 }
@@ -19,6 +20,7 @@ export const ScenarioView: React.FC<ScenarioViewProps> = ({
   scenario,
   previousRecord,
   canReconsider,
+  onOpenRehearsal,
   onConfirmChoice,
   onReconsider,
 }) => {
@@ -194,21 +196,37 @@ export const ScenarioView: React.FC<ScenarioViewProps> = ({
               </p>
             </div>
 
-            {/* Confirm & Advance Button */}
-            <button
-              type="button"
-              onClick={() =>
-                onConfirmChoice(
-                  selectedChoiceState.choice,
-                  selectedChoiceState.evaluation
-                )
-              }
-              className="w-full border-2 border-black bg-black py-3.5 font-mono text-xs font-semibold uppercase tracking-wider text-white hover:bg-neutral-800 active:scale-[0.99] mt-2 shadow-sm"
-            >
-              {selectedChoiceState.choice.targetEndingId
-                ? 'CONFIRM & VIEW FINAL RESOLUTION & CERTIFICATE →'
-                : 'CONFIRM & CONTINUE TO NEXT SCENE →'}
-            </button>
+            {/* Actions: Rehearse with microphone or bypass directly */}
+            <div className="space-y-2 pt-1">
+              <button
+                type="button"
+                onClick={() =>
+                  onOpenRehearsal(
+                    selectedChoiceState.choice,
+                    selectedChoiceState.evaluation
+                  )
+                }
+                className="w-full border-2 border-black bg-black py-3.5 font-mono text-xs font-bold uppercase tracking-wider text-white hover:bg-neutral-800 active:scale-[0.99] shadow-sm flex items-center justify-center gap-2"
+              >
+                <span>🎙️</span>
+                <span>REHEARSE WITH MICROPHONE (AI VOICE COACH) →</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() =>
+                  onConfirmChoice(
+                    selectedChoiceState.choice,
+                    selectedChoiceState.evaluation
+                  )
+                }
+                className="w-full border border-black bg-white py-2.5 font-mono text-xs uppercase tracking-wider text-neutral-700 hover:text-black hover:bg-neutral-50"
+              >
+                {selectedChoiceState.choice.targetEndingId
+                  ? 'CONTINUE TO FINAL RESOLUTION WITHOUT VOICE →'
+                  : 'CONTINUE TO NEXT SCENE WITHOUT VOICE →'}
+              </button>
+            </div>
           </div>
         )}
       </section>
